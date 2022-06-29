@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href = "style.css">
+        <title>しりとり</title>
+    </head>
+    <body>
+        <h1>しりとり</h1>
+        <p id = "previousWord"></p>
+        <input id = "nextWordInput" type = "text" />
+        <button id = "nextWordSendButton">送信</button>
+        <p id = "word_Log"></p>
+
+        <script type = "module">
+            window.onload = async (event) => {
+
+                const response = await fetch("/shiritori");
+                const previousWord_before = await response.text();
+                console.log(previousWord_before);
+                const previousWord_fixed = previousWord_before.replace(/\[|\]|"/g,'').split(',');
+                const previousWord = previousWord_fixed[previousWord_fixed.length - 1];
+                const $word_Log = document.querySelector("#word_Log");
+                console.log($word_Log);
+                $word_Log.innerText = `しりとり歴\n ${previousWord}`;
+
+                const para = document.querySelector("#previousWord");
+                para.innerText = `前の単語 : ${previousWord}`;
+                console.log("previouse = ",previousWord);
+            };
+            document.querySelector("#nextWordSendButton").onclick = async (event) => {
+                const nextWord = document.querySelector("#nextWordInput").value;
+                console.log("previouse = ",previousWord);
+                const response = await fetch("/shiritori", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({nextWord})
+                });
+
+                if(response.status / 100 === 4) {
+                    alert(await response.text());
+                    refresh();
+                    return;
+                }
+
+                const previousWord_before = await response.text();
+                const previousWord_fixed = previousWord_before.replace(/\[|\]|"/g,'').split(',');
+                const previousWord = previousWord_fixed[previousWord_fixed.length - 1];
+
+                const para = document.querySelector("#previousWord");
+                para.innerText = `前の単語:${previousWord}`;
+
+                const word_Log = document.querySelector("#word_Log");
+                let words = previousWord_before.replace(/\[|\]|"/g,'').split(/,/g,'->');
+
+                function refresh() {
+                let form = document.getElementById("nextWordInput");
+                form.value = '';
+                }
+            };
+        </script>
+    </body>
+</html>
